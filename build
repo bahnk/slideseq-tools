@@ -1,0 +1,86 @@
+#!/bin/bash
+
+function create_dir ()
+{
+	if [[ ! -d $1 ]]
+	then
+		mkdir -pv $1
+	fi
+}
+
+PKG_NAME=slideseq-tools
+VERSION=1.0
+REVISION=1
+ARCHITECTURE=x86_64
+EMAIL=nourdinebah@gmail.com
+
+###############################################################################
+### DEB PACKAGE ###############################################################
+
+DEB_NAME="${PKG_NAME}_${VERSION}-${REVISION}_${ARCHITECTURE}"
+DEB_DIR=pkg/deb/${DEB_NAME}
+
+create_dir ${DEB_DIR}/usr/bin
+cp -v bin/* ${DEB_DIR}/usr/bin
+
+create_dir ${DEB_DIR}/usr/include
+cp -v include/* ${DEB_DIR}/usr/include
+
+create_dir ${DEB_DIR}/DEBIAN
+
+echo "Package: ${PKG_NAME}" > ${DEB_DIR}/DEBIAN/control
+echo "Version: ${VERSION}" >> ${DEB_DIR}/DEBIAN/control
+echo "Architecture: ${ARCHITECTURE}" >> ${DEB_DIR}/DEBIAN/control
+echo "Maintainer: Nourdine Bah <${EMAIL}>" >> ${DEB_DIR}/DEBIAN/control
+echo "Description: Tools to process Slide-seq data" >> ${DEB_DIR}/DEBIAN/control
+
+cd pkg/deb
+ls -al
+dpkg-deb --build --root-owner-group $DEB_NAME
+cd -
+
+###############################################################################
+### SOURCE PACKAGE ############################################################
+
+SRC_NAME="${PKG_NAME}-${VERSION}"
+SRC_DIR=pkg/src/${SRC_NAME}/${SRC_NAME}
+
+create_dir $SRC_DIR
+
+rsync \
+	--verbose \
+	--recursive \
+	--progress \
+	--filter="+ /" \
+	--filter="+ /lib" \
+	--filter="+ /lib/*" \
+	--filter="+ /Makefile" \
+	--filter="+ /obj" \
+	--filter="+ /include" \
+	--filter="+ /include/*" \
+	--filter="+ /src" \
+	--filter="+ /src/*" \
+	--filter="- *" \
+	../slideseq-tools/ $SRC_DIR
+
+cd $SRC_DIR
+ls -al
+
+export LANG=en_US.UTF-8
+export LANGUAGE=en_US
+export LC_ALL=C
+
+dh_make \
+	--yes \
+	--packagename $SRC_NAME \
+	--single \
+	--native \
+	--copyright gpl3 \
+	--email $EMAIL
+
+rm -v DEBIAN/*.ex
+
+debuild -S
+
+cd -
+
