@@ -1,5 +1,5 @@
 /*
- * nourdine.bah@crick.ac.uk
+ * nourdinebah@gmail.com
  */
 
 #ifndef __MOLECULES_HPP

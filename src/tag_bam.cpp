@@ -1,6 +1,6 @@
 // ============================================================================
 // Program: tag_bam
-// Author: Nourdine Bah <nourdine.bah@crick.ac.uk>
+// Author: Nourdine Bah <nourdinebah@gmail.com>
 // ============================================================================
 
 #include <tuple>

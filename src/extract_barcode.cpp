@@ -1,6 +1,6 @@
 // ============================================================================
 // Program: extract_barcode
-// Author: Nourdine Bah <nourdine.bah@crick.ac.uk>
+// Author: Nourdine Bah <nourdinebah@gmail.com>
 // ============================================================================
 
 #include <map>

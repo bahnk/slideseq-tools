@@ -1,4 +1,4 @@
-# nourdine.bah@crick.ac.uk
+# nourdinebah@gmail.com
 
 CC=g++
 STD=-std=c++14
