@@ -11,7 +11,7 @@ function create_dir ()
 PKG_NAME=slideseq-tools
 VERSION=1.0
 REVISION=1
-ARCHITECTURE=x86_64
+ARCHITECTURE=amd64
 EMAIL=nourdinebah@gmail.com
 
 ###############################################################################
