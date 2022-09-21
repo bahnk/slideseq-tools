@@ -1,2 +1,6 @@
 *.bam
 *.o
+bin/*
+obj/*
+test/data/*
+tmp/*
