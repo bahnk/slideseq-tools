@@ -1,6 +1,12 @@
 *.bam
+*.dsc
 *.o
+*_source.build
+*_source.buildinfo
+*_source.changes
 bin/*
 obj/*
+pkg/deb/slideseq-tools_1.0-1_amd64/
+pkg/src/slideseq-tools-1.0/slideseq-tools-1.0/
 test/data/*
 tmp/*
