@@ -59,6 +59,9 @@ obj/counts.o: obj/gene.o
 obj/counter.o: obj/gene.o obj/counts.o
 	$(CC) lib/counter.cpp $(ARGS) -c -o obj/counter.o
 
+obj/base_mapping.o:
+	$(CC) lib/base_mapping.cpp $(ARGS) -c -o obj/base_mapping.o
+
 ###############################################################################
 ## TESTS ######################################################################
 
@@ -128,6 +131,9 @@ test/counter: obj/gene.o obj/counts.o
 		obj/counter.o \
 		test/counter.cpp $(ARGS) -o test/counter
 
+test/base_mapping: obj/base_mapping.o
+	$(CC) obj/base_mapping.o test/base_mapping.cpp $(ARGS) -o test/base_mapping
+
 ###############################################################################
 ## SOME RULES #################################################################
 
@@ -146,6 +152,7 @@ cnt: obj/count.o test/count
 counts: obj/counts.o test/counts
 gff: obj/gene.o test/gff
 counter: obj/counter.o test/counter
+base_mapping: obj/counter.o test/counter
 
 ###############################################################################
 ## PROGRAMS ###################################################################
@@ -187,7 +194,17 @@ count_bin: obj/utils.o obj/gene.o obj/counts.o obj/counter.o
 		src/count.cpp \
 		$(ARGS) -o bin/count
 
+pcr_duplicates:
+	$(CC) src/pcr_duplicates.cpp $(ARGS) -o bin/pcr_duplicates
+
+position_duplicates: obj/base_mapping.o
+	$(CC) \
+		obj/base_mapping.o \
+		src/position_duplicates.cpp \
+		$(ARGS) -o bin/position_duplicates
+
 all_bin: extract_barcode tag_bam add_match umis_per_barcode select count_bin
+all_bin: pcr_duplicates position_duplicates
 	@echo "Done"
 
 ###############################################################################
@@ -208,6 +225,7 @@ clean_obj:
 	rm -fv obj/count.o
 	rm -fv obj/counts.o
 	rm -fv obj/counter.o
+	rm -fv obj/base_mapping.o
 
 clean_test:
 	rm -fv test/utils
@@ -225,6 +243,7 @@ clean_test:
 	rm -fv test/counts
 	rm -fv test/gff
 	rm -fv test/counter
+	rm -fv test/base_mapping
 
 clean_tmp:
 	rm -fv features.tsv barcodes.tsv matrix.mtx
@@ -237,4 +256,6 @@ clean_bin:
 	rm -fv bin/umis_per_barcode
 	rm -fv bin/select
 	rm -fv bin/count
+	rm -fv bin/pcr_duplicates
+	rm -fv bin/position_duplicates
 
