@@ -99,7 +99,7 @@ Select(
 	std::string up_primer;
 	std::string umi;
 
-	std::string regex("^([A-Z]+)-([A-Z]+)-([A-Z]+):.*$");
+	std::string regex("^[^:]+:([A-Z]+):[^:]+:[^:]+:([A-Z]+):([A-Z]+):.*$");
 	std::regex rgx(regex);
 	std::smatch m;
 
@@ -115,8 +115,8 @@ Select(
 		std::string read_id( toCString(meta) );
 		if ( std::regex_match(read_id, m, rgx) )
 		{
-			barcode = m[1];
-			up_primer = m[2];
+			up_primer = m[1];
+			barcode = m[2];
 			umi = m[3];
 		}
 		else
