@@ -11,27 +11,29 @@ int main(int argc, char** argv)
 {
 	////////////////////////////////////////////////////////////////////////////
 
-	Record rec1 = Record(2, "read1", 10, "GeneA");
-	Record rec2 = Record(3, "read1", 14, "GeneB");
-	Record rec3 = Record(4, "read2", 14, "GeneB");
-	Record rec4 = Record(4, "read2", 14, "GeneB");
-	Record rec5 = Record(4, "read3", 15, "GeneB");
-	Record rec6 = Record(4, "read3", 14, "GeneC");
-	Record rec7 = Record(5, "read3", 14, "GeneC");
-	Record rec8 = Record(6, "read3", 18, "GeneC");
-	Record rec9 = Record(7, "read3", 20, "GeneD");
+	Record rec01 = Record(2, "read1", 1, 5, 10, "GeneA");
+	Record rec02 = Record(3, "read1", 4, 8, 14, "GeneA");
+	Record rec03 = Record(4, "read2", 1, 5, 14, "GeneA");
+	Record rec04 = Record(4, "read2", 5, 5, 14, "GeneB");
+	Record rec05 = Record(4, "read3", 1, 7, 15, "GeneB");
+	Record rec06 = Record(4, "read3", 1, 5, 14, "GeneA");
+	Record rec07 = Record(5, "read3", 2, 2, 14, "GeneC");
+	Record rec08 = Record(6, "read3", 1, 5, 18, "GeneA");
+	Record rec09 = Record(7, "read3", 1, 1, 20, "GeneD");
+	Record rec10 = Record(8, "read3", 3, 1, 20, "GeneD");
+	Record rec11 = Record(9, "read3", 3, 5, 20, "GeneD");
 
 	////////////////////////////////////////////////////////////////////////////
 
-	Molecule molecule = Molecule("ACGTACGTACGTACGT", "ACGTACGT", rec1);
-	molecule.Insert(rec2);
-	molecule.Insert(rec3);
-	molecule.Insert(rec4);
-	molecule.Insert(rec5);
-	molecule.Insert(rec6);
-	molecule.Insert(rec7);
-	molecule.Insert(rec8);
-	molecule.Insert(rec9);
+	Molecule molecule = Molecule("ACGTACGTACGTACGT", "ACGTACGT", rec01);
+	molecule.Insert(rec02);
+	molecule.Insert(rec03);
+	molecule.Insert(rec04);
+	molecule.Insert(rec05);
+	molecule.Insert(rec06);
+	molecule.Insert(rec07);
+	molecule.Insert(rec08);
+	molecule.Insert(rec09);
 
 	std::cout << std::endl;
 	std::cout << "Test of the ostream:" << std::endl;
@@ -65,9 +67,9 @@ int main(int argc, char** argv)
 
 	////////////////////////////////////////////////////////////////////////////
 	
-	Molecule mol1 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", rec1);
-	Molecule mol2 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", rec2);
-	Molecule mol3 = Molecule("TGCATGCATGCATGCA", "ACGTACGT", rec3);
+	Molecule mol1 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", rec01);
+	Molecule mol2 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", rec02);
+	Molecule mol3 = Molecule("TGCATGCATGCATGCA", "ACGTACGT", rec03);
 
 	std::cout << std::endl;
 	std::cout << "Test of the + operator with same barcodes:" << std::endl;
@@ -104,7 +106,7 @@ int main(int argc, char** argv)
 	Mappings mappings = molecule.GetMappings(true);
 	for (auto& m : mappings)
 	{
-		std::cout << m << ", " << m.GetScore() << std::endl;
+		std::cout << m << ", " << m.GetMaxScore() << std::endl;
 	}
 
 	std::cout << std::endl;
@@ -113,25 +115,28 @@ int main(int argc, char** argv)
 
 	////////////////////////////////////////////////////////////////////////////
 
-	Record r1 = Record(1, "read1", 1, "GeneA");
-	Record r2 = Record(2, "read2", 2, "GeneB");
-	Record r3 = Record(3, "read3", 3, "GeneC");
-	Record r4 = Record(4, "read4", 1, "GeneD");
-	Record r5 = Record(5, "read5", 2, "GeneE");
-	Record r6 = Record(6, "read6", 3, "GeneF");
-	Record r7 = Record(7, "read7", 1, "GeneG");
-	Record r8 = Record(8, "read8", 2, "GeneH");
-	Record r9 = Record(9, "read9", 3, "GeneI");
+	Record r01 = Record(1, "read01", 8, 6, 1, "GeneA");
+	Record r02 = Record(2, "read02", 9, 2, 2, "GeneB");
+	Record r03 = Record(3, "read03", 2, 6, 3, "GeneC");
+	Record r04 = Record(4, "read04", 2, 2, 1, "GeneD");
+	Record r05 = Record(5, "read05", 3, 4, 2, "GeneE");
+	Record r06 = Record(6, "read06", 2, 2, 3, "GeneD");
+	Record r07 = Record(7, "read07", 1, 1, 1, "GeneG");
+	Record r08 = Record(8, "read08", 2, 9, 2, "GeneH");
+	Record r09 = Record(9, "read09", 1, 6, 3, "GeneI");
+	Record r10 = Record(10, "read10", 1, 7, 3, "GeneA");
+	Record r11 = Record(11, "read11", 1, 8, 3, "GeneA");
+	Record r12 = Record(12, "read11", 1, 8, 2, "GeneC");
 
-	Molecule mm1 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", r1);
-	mm1.Insert(r2);
-	mm1.Insert(r3);
-	mm1.Insert(r4);
-	mm1.Insert(r5);
+	Molecule mm1 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", r01);
+	mm1.Insert(r02);
+	mm1.Insert(r03);
+	mm1.Insert(r04);
+	mm1.Insert(r05);
 
-	Molecule mm2 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", r3);
-	mm2.Insert(r6);
-	mm2.Insert(r8);
+	Molecule mm2 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", r03);
+	mm2.Insert(r06);
+	mm2.Insert(r08);
 
 	mm1.ExtractMappings();
 	mm2.ExtractMappings();
@@ -141,66 +146,102 @@ int main(int argc, char** argv)
 	std::cout << mm1 << ", this should be true: " << mm1.IsThereAMaxima() << std::endl;
 	std::cout << mm2 << ", this should be false :" << mm2.IsThereAMaxima() << std::endl;
 
+	///////////////////////
+	std::cout << std::endl;
+	std::cout << "Test of the IsThereAMajority() method:" << std::endl;
+
+	mm1.ComputeFrequencies();
+	mm2.ComputeFrequencies();
+
+	std::cout
+		<< mm1 << ", "
+		<< mm1.GetFrequenciesString() << ", "
+		<< mm1.IsThereAMajority() << ", "
+		<< mm1.GetMaxFrequency()
+		<< std::endl;
+
+	std::cout
+		<< mm2 << ", "
+		<< mm2.GetFrequenciesString() << ", "
+		<< mm2.IsThereAMajority() << ", "
+		<< mm2.GetMaxFrequency()
+		<< std::endl;
+
+	Molecule mm3 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", r01);
+	mm3.Insert(r02);
+	mm3.Insert(r10);
+	mm3.Insert(r11);
+	mm3.ExtractMappings();
+	mm3.ComputeFrequencies();
+
+	std::cout
+		<< mm3 << ", "
+		<< mm3.GetFrequenciesString() << ", "
+		<< mm3.IsThereAMajority() << ", "
+		<< mm3.GetMaxFrequency()
+		<< std::endl;
+
 	////////////////////////////////////////////////////////////////////////////
 
 	std::cout << std::endl;
 	std::cout << "Test of the GetRecordTags() method:" << std::endl;
 
+	mm1.Insert(r12);
 	for (auto& rec : mm1)
 	{
 		std::cout << rec << ", " << rec.GetScore() << std::endl;
 	}
-	for (auto& [pos, tag]: mm1.GetRecordTags())
+	for (auto& [pos, tags]: mm1.GetRecordTags())
 	{
-		std::cout << pos << ", " << tag << std::endl;
+		std::cout << pos << ", " << std::get<0>(tags) << ", " << std::get<1>(tags) << std::endl;
 	}
 
 	for (auto& rec : mm2)
 	{
 		std::cout << rec << ", " << rec.GetScore() << std::endl;
 	}
-	for (auto& [pos, tag]: mm2.GetRecordTags())
+	for (auto& [pos, tags]: mm2.GetRecordTags())
 	{
-		std::cout << pos << ", " << tag << std::endl;
+		std::cout << pos << ", " << std::get<0>(tags) << ", " << std::get<1>(tags) << std::endl;
 	}
 
-	Molecule mm3 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", r1);
-	mm3.ExtractMappings();
-	for (auto& rec : mm3)
-	{
-		std::cout << rec << ", " << rec.GetScore() << std::endl;
-	}
-	for (auto& [pos, tag]: mm3.GetRecordTags())
-	{
-		std::cout << pos << ", " << tag << std::endl;
-	}
-
-	Record rr1 = Record(1, "read1", 1, "GeneA");
-	Record rr2 = Record(2, "read2", 2, "GeneA");
-	Record rr3 = Record(3, "read2", 2, "GeneA");
-	Molecule mm4 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", rr1);
-	mm4.Insert(rr2);
-	mm4.Insert(rr3);
+	Molecule mm4 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", r01);
 	mm4.ExtractMappings();
 	for (auto& rec : mm4)
 	{
 		std::cout << rec << ", " << rec.GetScore() << std::endl;
 	}
-	for (auto& [pos, tag]: mm4.GetRecordTags())
+	for (auto& [pos, tags]: mm4.GetRecordTags())
 	{
-		std::cout << pos << ", " << tag << std::endl;
+		std::cout << pos << ", " << std::get<0>(tags) << ", " << std::get<1>(tags) << std::endl;
 	}
 
-	Molecule mm5 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", rr2);
-	mm5.Insert(rr3);
+	Record rr01 = Record(1, "read1", 2, 5, 1, "GeneA");
+	Record rr02 = Record(2, "read2", 1, 7, 2, "GeneA");
+	Record rr03 = Record(3, "read2", 2, 8, 2, "GeneA");
+	Molecule mm5 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", rr01);
+	mm5.Insert(rr02);
+	mm5.Insert(rr03);
 	mm5.ExtractMappings();
 	for (auto& rec : mm5)
 	{
 		std::cout << rec << ", " << rec.GetScore() << std::endl;
 	}
-	for (auto& [pos, tag] : mm5.GetRecordTags())
+	for (auto& [pos, tags]: mm5.GetRecordTags())
 	{
-		std::cout << pos << ", " << tag << std::endl;
+		std::cout << pos << ", " << std::get<0>(tags) << ", " << std::get<1>(tags) << std::endl;
+	}
+
+	Molecule mm6 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", rr02);
+	mm6.Insert(rr03);
+	mm6.ExtractMappings();
+	for (auto& rec : mm6)
+	{
+		std::cout << rec << ", " << rec.GetScore() << std::endl;
+	}
+	for (auto& [pos, tags] : mm6.GetRecordTags())
+	{
+		std::cout << pos << ", " << std::get<0>(tags) << ", " << std::get<1>(tags) << std::endl;
 	}
 
 	////////////////////////////////////////////////////////////////////////////
@@ -213,9 +254,9 @@ int main(int argc, char** argv)
 	{
 		std::cout << rec << ", " << rec.GetScore() << std::endl;
 	}
-	for (auto& [pos, tag]: mm1.GetFrequencyBasedRecordTags())
+	for (auto& [pos, tags]: mm1.GetFrequencyBasedRecordTags())
 	{
-		std::cout << pos << ", " << tag << std::endl;
+		std::cout << pos << ", " << std::get<0>(tags) << ", " << std::get<1>(tags) << std::endl;
 	}
 
 	mm2.ComputeFrequencies();
@@ -223,52 +264,54 @@ int main(int argc, char** argv)
 	{
 		std::cout << rec << ", " << rec.GetScore() << std::endl;
 	}
-	for (auto& [pos, tag]: mm2.GetFrequencyBasedRecordTags())
+	for (auto& [pos, tags]: mm2.GetFrequencyBasedRecordTags())
 	{
-		std::cout << pos << ", " << tag << std::endl;
+		std::cout << pos << ", " << std::get<0>(tags) << ", " << std::get<1>(tags) << std::endl;
 	}
 
-	Molecule mm6 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", rec1);
-	mm6.ComputeFrequencies();
-	for (auto& rec : mm6)
-	{
-		std::cout << rec << ", " << rec.GetScore() << std::endl;
-	}
-	for (auto& [pos, tag] : mm6.GetFrequencyBasedRecordTags())
-	{
-		std::cout << pos << ", " << tag << std::endl;
-	}
-
-	Molecule mm7 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", rec1);
-	mm7.Insert(rec3);
-	mm7.Insert(rec4);
-	mm7.Insert(rec5);
-	mm7.Insert(rec6);
-	mm7.Insert(rec7);
-	mm7.Insert(rec8);
-	mm7.Insert(rec9);
+	Molecule mm7 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", rec01);
 	mm7.ComputeFrequencies();
 	for (auto& rec : mm7)
 	{
 		std::cout << rec << ", " << rec.GetScore() << std::endl;
 	}
-	for (auto& [pos, tag] : mm7.GetFrequencyBasedRecordTags())
+	for (auto& [pos, tags] : mm7.GetFrequencyBasedRecordTags())
 	{
-		std::cout << pos << ", " << tag << std::endl;
+		std::cout << pos << ", " << std::get<0>(tags) << ", " << std::get<1>(tags) << std::endl;
 	}
 
-	Molecule mm8 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", rec2);
-	mm8.Insert(rec3);
-	mm8.Insert(rec6);
-	mm8.Insert(rec7);
+	Molecule mm8 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", rec01);
+	mm8.Insert(rec03);
+	mm8.Insert(rec04);
+	mm8.Insert(rec05);
+	mm8.Insert(rec06);
+	mm8.Insert(rec07);
+	mm8.Insert(rec08);
+	mm8.Insert(rec09);
+	mm8.ExtractMappings();
 	mm8.ComputeFrequencies();
 	for (auto& rec : mm8)
 	{
 		std::cout << rec << ", " << rec.GetScore() << std::endl;
 	}
-	for (auto& [pos, tag] : mm8.GetFrequencyBasedRecordTags())
+	for (auto& [pos, tags] : mm8.GetFrequencyBasedRecordTags())
 	{
-		std::cout << pos << ", " << tag << std::endl;
+		std::cout << pos << ", " << std::get<0>(tags) << ", " << std::get<1>(tags) << std::endl;
+	}
+
+	Molecule mm9 = Molecule("ACGTACGTACGTACGT", "ACGTACGT", rec02);
+	mm9.Insert(rec03);
+	mm9.Insert(rec06);
+	mm9.Insert(rec07);
+	mm9.ExtractMappings();
+	mm9.ComputeFrequencies();
+	for (auto& rec : mm9)
+	{
+		std::cout << rec << ", " << rec.GetScore() << std::endl;
+	}
+	for (auto& [pos, tags] : mm9.GetFrequencyBasedRecordTags())
+	{
+		std::cout << pos << ", " << std::get<0>(tags) << ", " << std::get<1>(tags) << std::endl;
 	}
 
 	////////////////////////////////////////////////////////////////////////////
@@ -279,6 +322,87 @@ int main(int argc, char** argv)
 
 	////////////////////////////////////////////////////////////////////////////
 
+	std::cout << std::endl;
+	std::cout << "Test of the ExtractMappings() method:" << std::endl;
+
+	for (auto& rec : mm7.GetRecords())
+	{
+		std::cout << "Record: " << rec << std::endl;
+	}
+
+	mm7.ExtractMappings();
+
+	for (auto& mapping : mm7.GetMappings())
+	{
+		std::string gene = "";
+
+		try
+		{
+			gene = mapping.GetGene();
+		}
+		catch(unsigned long size) {
+			gene = "NULL(" + std::to_string(size) + ")";
+		}
+
+		std::cout
+			<< "Mapping: "
+			<< mapping
+			<< ", "
+			<< mapping.GetMaxScore()
+			<< ", "
+			<< gene
+			<< std::endl;
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+
+	std::cout << std::endl;
+	std::cout << "Test of the ComputeFrequencies() method:" << std::endl;
+
+	Molecule mmx = Molecule("ACGTAGGCACGTACGT", "TCCTACGT", rec01);
+	mmx.Insert(rec01);
+	mmx.Insert(rec02);
+	mmx.Insert(rec03);
+	mmx.Insert(rec04);
+	mmx.Insert(rec05);
+	mmx.Insert(rec06);
+	mmx.Insert(rec07);
+	mmx.Insert(rec08);
+	mmx.Insert(rec09);
+	mmx.Insert(rec10);
+	mmx.Insert(rec11);
+
+	for (auto& rec : mmx.GetRecords())
+	{
+		std::cout << "Record: " << rec << std::endl;
+
+	}
+
+	mmx.ExtractMappings();
+	mmx.ComputeFrequencies();
+
+	std::cout
+		<< "Freqs: " << mmx.GetFrequenciesString()
+		<< ", Max Freqs: " << mmx.GetMaxFrequency()
+		<< std::endl;
+
+	////////////////////////////////////////////////////////////////////////////
+
+	std::cout << std::endl;
+	std::cout << "Test of the IsThereAMajority() method:" << std::endl;
+	mm7.ComputeFrequencies();
+	std::cout
+		<< "Freqs: " << mm7.GetFrequenciesString()
+		<< ", majority? " << mm7.IsThereAMajority()
+		<< ", max frequency? " << mm7.GetMaxFrequency()
+		<< std::endl;
+	std::cout
+		<< "Freqs: " << mm9.GetFrequenciesString()
+		<< ", majority? " << mm9.IsThereAMajority()
+		<< ", max frequency? " << mm9.GetMaxFrequency()
+		<< std::endl;
+
+	////////////////////////////////////////////////////////////////////////////
 	return 0;
 }
 

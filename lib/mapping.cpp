@@ -2,11 +2,12 @@
  * nourdinebah@gmail.com
  */
 
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <set>
 #include <string>
 #include <tuple>
-#include <vector>
-#include <fstream>
-#include <algorithm>
 
 #include "mapping.hpp"
 
@@ -26,20 +27,12 @@ Mapping::Mapping()
 // Minimal constructor
 // ----------------------------------------------------------------------------
 
-Mapping::Mapping(char* gene, int score)
+Mapping::Mapping(int32_t reference, int32_t position, int score, char* gene)
 {
-	this->gene = std::string(gene);
-	this->scores = {score};
-}
-
-// ----------------------------------------------------------------------------
-// Alternative constructor
-// ----------------------------------------------------------------------------
-
-Mapping::Mapping(std::string gene, int score)
-{
-	this->gene = gene;
-	this->scores = {score};
+	this->reference = reference;
+	this->position = position;
+	this->scores = std::set<int>{score};
+	this->genes = std::set<std::string>{std::string(gene)};
 }
 
 // ----------------------------------------------------------------------------
@@ -48,12 +41,10 @@ Mapping::Mapping(std::string gene, int score)
 
 Mapping::Mapping(const Mapping& mapping)
 {
-	this->gene = mapping.GetGene();
-	this->scores= std::vector<int>();
-	for (auto& score : mapping.scores) // the access modifiers work on class level, and not on object level!
-	{
-		this->scores.push_back(score);
-	}
+	this->reference = mapping.GetReference();
+	this->position = mapping.GetPosition();
+	this->scores = mapping.GetScores();
+	this->genes = mapping.GetGenes();
 }
 
 // ============================================================================
@@ -61,33 +52,39 @@ Mapping::Mapping(const Mapping& mapping)
 // ============================================================================
 
 // ----------------------------------------------------------------------------
-// GetGene()
+// GetReference()
 // ----------------------------------------------------------------------------
 
-std::string Mapping::GetGene() const
+int32_t Mapping::GetReference() const
 {
-	return gene;
+	return reference;
+}
+
+// ----------------------------------------------------------------------------
+// GetPosition()
+// ----------------------------------------------------------------------------
+
+int32_t Mapping::GetPosition() const
+{
+	return position;
 }
 
 // ----------------------------------------------------------------------------
 // GetScores()
 // ----------------------------------------------------------------------------
 
-std::vector<int> Mapping::GetScores() const
+std::set<int> Mapping::GetScores() const
 {
 	return scores;
 }
 
 // ----------------------------------------------------------------------------
-// GetScore()
+// GetGene()
 // ----------------------------------------------------------------------------
 
-int Mapping::GetScore() const
+std::set<std::string> Mapping::GetGenes() const
 {
-	std::vector<int>::const_iterator it;
-	it = std::max_element(scores.begin(), scores.end());
-
-	return *it;
+	return genes;
 }
 
 // ============================================================================
@@ -95,10 +92,10 @@ int Mapping::GetScore() const
 // ============================================================================
 
 // ----------------------------------------------------------------------------
-// GetScoreString()
+// GetScoresString()
 // ----------------------------------------------------------------------------
 
-std::string Mapping::GetScoreString() const
+std::string Mapping::GetScoresString() const
 {
 	unsigned long long i = 0;
 	std::string str = "";
@@ -106,16 +103,94 @@ std::string Mapping::GetScoreString() const
 	for (auto& score : scores)
 	{
 		str.append( std::to_string(score) );
-
 		i++;
 
 		if ( i < scores.size() )
 		{
-			str.append(":");
+			str.append(", ");
 		}
 	}
 
-	return str;
+	return "<" + str + ">";
+}
+
+// ----------------------------------------------------------------------------
+// GetGenesString()
+// ----------------------------------------------------------------------------
+
+std::string Mapping::GetGenesString() const
+{
+	unsigned long long i = 0;
+	std::string str = "";
+
+	for (auto& gene : genes)
+	{
+		str.append(gene);
+		i++;
+
+		if ( i < genes.size() )
+		{
+			str.append(", ");
+		}
+	}
+
+	return "<" + str + ">";
+}
+
+// ----------------------------------------------------------------------------
+// InsertScore()
+// ----------------------------------------------------------------------------
+
+void Mapping::InsertScore(int score)
+{
+	scores.insert(score);
+}
+
+// ----------------------------------------------------------------------------
+// InsertGene()
+// ----------------------------------------------------------------------------
+
+void Mapping::InsertGene(std::string gene)
+{
+	genes.insert(gene);
+}
+
+// ----------------------------------------------------------------------------
+// IsGeneUnique()
+// ----------------------------------------------------------------------------
+
+bool Mapping::IsGeneUnique() const
+{
+	return genes.size() == 1;
+}
+
+// ----------------------------------------------------------------------------
+// GetMaxScore()
+// ----------------------------------------------------------------------------
+
+int Mapping::GetMaxScore() const
+{
+	std::set<int>::iterator max_score;
+	max_score = std::max_element(scores.begin(), scores.end());
+	return *max_score;
+}
+
+// ----------------------------------------------------------------------------
+// GetGene()
+// ----------------------------------------------------------------------------
+
+std::string Mapping::GetGene() const
+{
+	if ( genes.size() == 1 )
+	{
+		std::vector<std::string> v(genes.begin(), genes.end());
+		return v[0];
+	}
+	
+	else
+	{
+		throw( genes.size() );
+	}
 }
 
 // ============================================================================
@@ -126,10 +201,32 @@ std::string Mapping::GetScoreString() const
 // ostream
 // ----------------------------------------------------------------------------
 
-std::ostream& operator<<(std::ostream& out, const Mapping& Mapping)
+std::ostream& operator<<(std::ostream& out, const Mapping& mapping)
 {
-	out << "(" << Mapping.GetGene() << ", " << Mapping.GetScoreString() << ")";
+	out
+		<< "("
+		<< mapping.GetReference() << ", "
+		<< mapping.GetPosition() << ", "
+		<< mapping.GetScoresString() << ", "
+		<< mapping.GetGenesString()
+		<< ")";
+
 	return out;
+}
+
+// ----------------------------------------------------------------------------
+// lesser than
+// ----------------------------------------------------------------------------
+
+bool operator<(const Mapping& mapping1, const Mapping& mapping2)
+{
+	int32_t ref1 = mapping1.GetReference();
+	int32_t ref2 = mapping2.GetReference();
+
+	int32_t pos1 = mapping1.GetPosition();
+	int32_t pos2 = mapping2.GetPosition();
+
+	return ( ref1 < ref2 ) || ( ref1 == ref2 && pos1 < pos2 );
 }
 
 // ----------------------------------------------------------------------------
@@ -138,13 +235,21 @@ std::ostream& operator<<(std::ostream& out, const Mapping& Mapping)
 
 Mapping operator+(const Mapping& mapping1, const Mapping& mapping2)
 {
-	if ( mapping1.GetGene() ==  mapping2.GetGene() )
+	if (
+		mapping1.GetReference() ==  mapping2.GetReference() &&
+		mapping1.GetPosition() ==  mapping2.GetPosition()
+	)
 	{
 		Mapping mapping = Mapping(mapping1);
 
-		for (auto& score : mapping2)
+		for (auto& score : mapping2.GetScores())
 		{
-			mapping.scores.push_back(score);
+			mapping.InsertScore(score);
+		}
+
+		for (auto& gene : mapping2.GetGenes())
+		{
+			mapping.InsertGene(gene);
 		}
 
 		return mapping;
@@ -153,36 +258,5 @@ Mapping operator+(const Mapping& mapping1, const Mapping& mapping2)
 	{
 		throw( std::make_tuple(mapping1, mapping2) );
 	}
-}
-
-// ----------------------------------------------------------------------------
-// lesser than
-// ----------------------------------------------------------------------------
-
-bool operator<(const Mapping& Mapping1, const Mapping& Mapping2)
-{
-	return Mapping1.GetGene() < Mapping2.GetGene();
-}
-
-// ============================================================================
-// Iterators
-// ============================================================================
-
-// ----------------------------------------------------------------------------
-// begin()
-// ----------------------------------------------------------------------------
-
-std::vector<int>::const_iterator Mapping::begin() const
-{
-	return scores.begin();
-}
-
-// ----------------------------------------------------------------------------
-// end()
-// ----------------------------------------------------------------------------
-
-std::vector<int>::const_iterator Mapping::end() const
-{
-	return scores.end();
 }
 

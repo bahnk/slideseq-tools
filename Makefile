@@ -244,6 +244,7 @@ clean_test:
 	rm -fv test/gff
 	rm -fv test/counter
 	rm -fv test/base_mapping
+	rm -fv test/select
 
 clean_tmp:
 	rm -fv features.tsv barcodes.tsv matrix.mtx

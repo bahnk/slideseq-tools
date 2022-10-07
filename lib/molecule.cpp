@@ -2,12 +2,12 @@
  * nourdinebah@gmail.com
  */
 
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <set>
 #include <string>
 #include <tuple>
-#include <set>
-#include <map>
-#include <iostream>
-#include <fstream>
 
 #include "record.hpp"
 #include "mapping.hpp"
@@ -103,9 +103,34 @@ std::set<Record> Molecule::GetRecords() const
 	return records;
 }
 
+// ----------------------------------------------------------------------------
+// GetMappings()
+// ----------------------------------------------------------------------------
+
+Mappings Molecule::GetMappings() const
+{
+	return mappings;
+}
+
 // ============================================================================
-// Methods
+// Secondary getters
 // ============================================================================
+
+// ----------------------------------------------------------------------------
+// GetReads()
+// ----------------------------------------------------------------------------
+
+std::set<std::string> Molecule::GetReads() const
+{
+	std::set<std::string> reads;
+
+	for (auto& record : records)
+	{
+		reads.insert( record.GetRead() );
+	}
+
+	return reads;
+}
 
 // ----------------------------------------------------------------------------
 // GetRecordString()
@@ -118,7 +143,7 @@ std::string Molecule::GetRecordString() const
 
 	for (auto& rec: records)
 	{
-		str.append( std::to_string(rec.GetPos()) );
+		str.append( std::to_string(rec.GetIndex()) );
 
 		i++;
 
@@ -129,15 +154,6 @@ std::string Molecule::GetRecordString() const
 	}
 
 	return str;
-}
-
-// ----------------------------------------------------------------------------
-// Insert()
-// ----------------------------------------------------------------------------
-
-void Molecule::Insert(Record record)
-{
-	records.insert(record);
 }
 
 // ----------------------------------------------------------------------------
@@ -180,6 +196,45 @@ std::string Molecule::GetGeneString() const
 }
 
 // ----------------------------------------------------------------------------
+// GetCSVString()
+// ----------------------------------------------------------------------------
+
+std::string Molecule::GetCSVString(char molecule_delimiter, char record_delimiter) const
+{
+	std::string str;
+	unsigned long long i = 0;
+
+	for (auto& record : records)
+	{
+		str.append( record.GetCSVString(record_delimiter) );
+		i++;
+		if ( i < records.size() )
+		{
+			str.push_back(molecule_delimiter);
+		}
+	}
+
+	return str;
+}
+
+// ============================================================================
+// Methods
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// Insert()
+// ----------------------------------------------------------------------------
+
+void Molecule::Insert(Record record)
+{
+	records.insert(record);
+}
+
+// ============================================================================
+// Mappings methods
+// ============================================================================
+
+// ----------------------------------------------------------------------------
 // ExtractMappings()
 // ----------------------------------------------------------------------------
 
@@ -189,7 +244,13 @@ void Molecule::ExtractMappings()
 
 	for (auto& rec : records)
 	{
-		Mapping mapping = Mapping(rec.GetGene(), rec.GetScore());
+		Mapping mapping = Mapping(
+			rec.GetReference(),
+			rec.GetPos(),
+			rec.GetScore(),
+			(char*)rec.GetGene().c_str() // I know that's bad, but unlikely to be modified
+		);
+
 		mappings.Insert(mapping);
 	}
 
@@ -211,6 +272,15 @@ Mappings Molecule::GetMappings(bool extract=false)
 }
 
 // ----------------------------------------------------------------------------
+// GetNumberOfMappings()
+// ----------------------------------------------------------------------------
+
+int Molecule::GetNumberOfMappings() const
+{
+	return mappings.GetSize();
+}
+
+// ----------------------------------------------------------------------------
 // GetMaxScore()
 // ----------------------------------------------------------------------------
 
@@ -220,9 +290,9 @@ long Molecule::GetMaxScore() const
 
 	for (auto& mapping : mappings)
 	{
-		if ( mapping.GetScore() > max )
+		if ( mapping.GetMaxScore() > max )
 		{
-			max = mapping.GetScore();
+			max = mapping.GetMaxScore();
 		}
 	}
 
@@ -240,7 +310,7 @@ bool Molecule::IsThereAMaxima() const
 
 	for (auto& mapping : mappings)
 	{
-		if ( mapping.GetScore() == max )
+		if ( mapping.GetMaxScore() == max )
 		{
 			n++;
 		}
@@ -248,7 +318,12 @@ bool Molecule::IsThereAMaxima() const
 
 	if ( n == 0 )
 	{
-		std::cerr << "Error: the maximal score value can't be found in the " << *this << " molecule" << std::endl;
+		std::cerr
+			<< "Error: the maximal score value can't be found in the "
+			<< *this
+			<< " molecule"
+			<< std::endl;
+
 		exit(EXIT_FAILURE);
 	}
 	else if ( n == 1 )
@@ -265,15 +340,16 @@ bool Molecule::IsThereAMaxima() const
 // GetRecordTags()
 // ----------------------------------------------------------------------------
 
-std::map<unsigned long long, std::string> Molecule::GetRecordTags() const
+std::map< unsigned long long , std::tuple<std::string, std::string> >
+Molecule::GetRecordTags() const
 {
-	std::map<unsigned long long, std::string> map;
+	std::map< unsigned long long , std::tuple<std::string, std::string> > map;
 
 	if ( GetGenes().size() == 1 && records.size() == 1 )
 	{
 		for (auto& rec : records)
 		{
-			map[rec.GetPos()] = "UNIQUE";
+			map[rec.GetIndex()] = std::make_tuple("UNIQUE", "SAME_GENE");
 		}
 
 		return map;
@@ -284,16 +360,42 @@ std::map<unsigned long long, std::string> Molecule::GetRecordTags() const
 		bool found = false;
 		long max = GetMaxScore();
 
+		// the possible selected gene
+		std::string gene = "";
 		for (auto& rec : records)
 		{
-			if ( !found && rec.GetScore() == max )
+			if ( rec.GetScore() == max )
 			{
-				map[rec.GetPos()] = "INCLUDED";
-				found = true;
+				gene = rec.GetGene();
 			}
+		}
+
+		for (auto& rec : records)
+		{
+			if ( rec.GetScore() == max )
+			{
+				if ( ! found )
+				{
+					map[rec.GetIndex()] = std::make_tuple("INCLUDED", "SAME_GENE");
+					found = true;
+				}
+				else
+				{
+					// if it's max score then it has to be the same gene
+					map[rec.GetIndex()] = std::make_tuple("EXCLUDED", "SAME_GENE");
+				}
+			}
+
 			else
 			{
-				map[rec.GetPos()] = "EXCLUDED";
+				if ( rec.GetGene() == gene )
+				{
+					map[rec.GetIndex()] = std::make_tuple("EXCLUDED", "SAME_GENE");
+				}
+				else
+				{
+					map[rec.GetIndex()] = std::make_tuple("EXCLUDED", "DIFFERENT_GENE");
+				}
 			}
 		}
 	}
@@ -302,7 +404,7 @@ std::map<unsigned long long, std::string> Molecule::GetRecordTags() const
 	{
 		for (auto& rec : records)
 		{
-			map[rec.GetPos()] = "UNRESOLVED";
+			map[rec.GetIndex()] = std::make_tuple("UNRESOLVED", "UNRESOLVED");
 		}
 	}
 
@@ -316,12 +418,47 @@ std::map<unsigned long long, std::string> Molecule::GetRecordTags() const
 void Molecule::ComputeFrequencies()
 {
 	std::map<std::string, long long> frequencies;
-	for (auto& rec : records)
+
+	for (auto& mapping : mappings)
 	{
-		frequencies[ rec.GetGene() ]++;
+		try
+		{
+			frequencies[ mapping.GetGene() ]++;
+		}
+		catch(unsigned long size)
+		{
+			std::cerr
+				<< "Error: the size of the Mapping "
+				<< mapping
+				<< " is "
+				<< std::to_string(size)
+				<< std::endl;
+		}
 	}
 
 	this->frequencies = frequencies;
+}
+
+// ----------------------------------------------------------------------------
+// GetFrequenciesString()
+// ----------------------------------------------------------------------------
+
+std::string Molecule::GetFrequenciesString() const
+{
+	unsigned long long i = 0;
+	std::string str = "";
+
+	for (auto& [gene, freq]: frequencies)
+	{
+		str.append( gene + ":" + std::to_string(freq) );
+
+		if ( i < frequencies.size() )
+		{
+			str.append(", ");
+		}
+	}
+
+	return "<" + str + ">";
 }
 
 // ----------------------------------------------------------------------------
@@ -362,7 +499,12 @@ bool Molecule::IsThereAMajority() const
 
 	if ( n == 0 )
 	{
-		std::cerr << "Error: the maximal frequency can't be found in the " << *this << " molecule" << std::endl;
+		std::cerr
+			<< "Error: the maximal frequency can't be found in the "
+			<< *this
+			<< " molecule"
+			<< std::endl;
+
 		exit(EXIT_FAILURE);
 	}
 	else if ( n == 1 )
@@ -379,9 +521,10 @@ bool Molecule::IsThereAMajority() const
 // GetFrequencyBasedRecordTags()
 // ----------------------------------------------------------------------------
 
-std::map<unsigned long long, std::string> Molecule::GetFrequencyBasedRecordTags()
+std::map< unsigned long long , std::tuple<std::string, std::string> >
+Molecule::GetFrequencyBasedRecordTags()
 {
-	std::map<unsigned long long, std::string> map;
+	std::map< unsigned long long , std::tuple<std::string, std::string> > map;
 
 	std::string status;
 
@@ -391,7 +534,7 @@ std::map<unsigned long long, std::string> Molecule::GetFrequencyBasedRecordTags(
 
 		for (auto& rec : records)
 		{
-			map[rec.GetPos()] = "UNIQUE";
+			map[rec.GetIndex()] = std::make_tuple("UNIQUE", "SAME_GENE");
 		}
 
 		return map;
@@ -414,14 +557,21 @@ std::map<unsigned long long, std::string> Molecule::GetFrequencyBasedRecordTags(
 		bool found = false;
 		for (auto& rec : records)
 		{
-			if ( !found && rec.GetGene() == selected_gene )
+			if ( rec.GetGene() == selected_gene )
 			{
-				map[rec.GetPos()] = "INCLUDED";
-				found = true;
+				if ( ! found )
+				{
+					map[rec.GetIndex()] = std::make_tuple("INCLUDED", "SAME_GENE");
+					found = true;
+				}
+				else
+				{
+					map[rec.GetIndex()] = std::make_tuple("EXCLUDED", "SAME_GENE");
+				}
 			}
 			else
 			{
-				map[rec.GetPos()] = "EXCLUDED";
+				map[rec.GetIndex()] = std::make_tuple("EXCLUDED", "DIFFERENT_GENE");
 			}
 		}
 	}
@@ -432,51 +582,13 @@ std::map<unsigned long long, std::string> Molecule::GetFrequencyBasedRecordTags(
 
 		for (auto& rec : records)
 		{
-			map[rec.GetPos()] = "UNRESOLVED";
+			map[rec.GetIndex()] = std::make_tuple("UNRESOLVED", "UNRESOLVED");
 		}
 	}
 
 	this->status = status;
 
 	return map;
-}
-
-// ----------------------------------------------------------------------------
-// GetReads()
-// ----------------------------------------------------------------------------
-
-std::set<std::string> Molecule::GetReads() const
-{
-	std::set<std::string> reads;
-
-	for (auto& record : records)
-	{
-		reads.insert( record.GetRead() );
-	}
-
-	return reads;
-}
-
-// ----------------------------------------------------------------------------
-// GetCSVString()
-// ----------------------------------------------------------------------------
-
-std::string Molecule::GetCSVString(char molecule_delimiter, char record_delimiter) const
-{
-	std::string str;
-	unsigned long long i = 0;
-
-	for (auto& record : records)
-	{
-		str.append( record.GetCSVString(record_delimiter) );
-		i++;
-		if ( i < records.size() )
-		{
-			str.push_back(molecule_delimiter);
-		}
-	}
-
-	return str;
 }
 
 // ============================================================================
@@ -489,7 +601,13 @@ std::string Molecule::GetCSVString(char molecule_delimiter, char record_delimite
 
 std::ostream& operator<<(std::ostream& out, const Molecule& molecule)
 {
-	out << "(" << molecule.GetBarcode() << ", " << molecule.GetUMI() << ", " << molecule.GetRecordString() << ")";
+	out
+		<< "("
+		<< molecule.GetBarcode() << ", "
+		<< molecule.GetUMI() << ", "
+		<< molecule.GetRecordString()
+		<< ")";
+
 	return out;
 }
 

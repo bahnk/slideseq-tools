@@ -5,29 +5,36 @@
 #ifndef __MAPPING_HPP
 #define __MAPPING_HPP
 
+#include <set>
 #include <string>
 #include <vector>
 
 class Mapping
 {
 	private:
-		std::string gene;
-		std::vector<int> scores;
+		int32_t reference;
+		int32_t position;
+		std::set<int> scores;
+		std::set<std::string> genes;
 	
 	public:
 		Mapping();
-		Mapping(char*, int);
-		Mapping(std::string, int);
+		Mapping(int32_t, int32_t, int, char*);
 		Mapping(const Mapping&);
+		int32_t GetReference() const;
+		int32_t GetPosition() const;
+		std::set<int> GetScores() const;
+		std::set<std::string> GetGenes() const;
+		std::string GetScoresString() const;
+		std::string GetGenesString() const;
+		void InsertScore(int);
+		void InsertGene(std::string);
+		bool IsGeneUnique() const;
+		int GetMaxScore() const;
 		std::string GetGene() const;
-		std::vector<int> GetScores() const;
-		std::string GetScoreString() const;
-		int GetScore() const;
 		friend std::ostream& operator<<(std::ostream&, const Mapping&);
 		friend bool operator<(const Mapping&, const Mapping&);
 		friend Mapping operator+(const Mapping&, const Mapping&);
-		std::vector<int>::const_iterator begin() const;
-		std::vector<int>::const_iterator end() const;
 };
 
 #endif

@@ -106,7 +106,7 @@ parseCommandLine(SelectOptions& options, int argc, char const** argv)
 
 Molecules ExtractMoleculesFromBAM(CharString bam_path, bool test=false)
 {
-	unsigned long long position = 0;
+	unsigned long long index = 0;
 
 	BamFileIn bam(toCString(bam_path));
 	BamHeader header;
@@ -131,17 +131,17 @@ Molecules ExtractMoleculesFromBAM(CharString bam_path, bool test=false)
 		ExtractTag("XF", dict, gene);
 		ExtractTag("AS", dict, score);
 
-		Record record = Record(position, toCString(rec.qName), score, toCString(gene));
+		Record record = Record(index, toCString(rec.qName), rec.rID, rec.beginPos, score, toCString(gene));
 		Molecule molecule = Molecule(toCString(barcode), toCString(umi), record);
 		molecules.Insert(molecule);
 
-		position++;
+		index++;
 
-		if ( (position+1) % (unsigned long long)1000000 == 0 ) {
-			std::cerr << "Extracting " << (position+1) << "..." << std::endl;
+		if ( (index+1) % (unsigned long long)1000000 == 0 ) {
+			std::cerr << "Extracting " << (index+1) << "..." << std::endl;
 		}
 
-		if (test) { if ( position > 9999999 ) { break; } }
+		if (test) { if ( index > 9999999 ) { break; } }
 	}
 
 	close(bam);
@@ -155,7 +155,8 @@ Molecules ExtractMoleculesFromBAM(CharString bam_path, bool test=false)
 
 void WriteTaggedRecords(
 		CharString bam_path_in, CharString bam_path_out,
-		std::map<unsigned long long, std::string>& values, char* tag, bool test=false)
+		std::map<unsigned long long, std::tuple<std::string, std::string>>& values,
+		bool test=false)
 {
 	BamFileIn bam_in(toCString(bam_path_in));
 	BamFileOut bam_out(context(bam_in), toCString(bam_path_out));
@@ -166,29 +167,32 @@ void WriteTaggedRecords(
 
 	BamAlignmentRecord rec;
 
-	unsigned long long position = 0;
+	unsigned long long index = 0;
 
 	while ( ! atEnd(bam_in) )
 	{
 		readRecord(rec, bam_in);
 		BamTagsDict dict(rec.tags);
-		appendTagValue(dict, tag, values[position]);
+
+		std::tuple<std::string, std::string> tags = values[index];
+		appendTagValue(dict, "cs", std::get<0>(tags));
+		appendTagValue(dict, "sg", std::get<1>(tags));
+
 		tagsToBamRecord(rec, dict);
 		writeRecord(bam_out, rec);
 
-		position++;
+		index++;
 
-		if ( (position+1) % (unsigned long long)1000000 == 0 ) {
-			std::cerr << "Writing " << (position+1) << "..." << std::endl;
+		if ( (index+1) % (unsigned long long)1000000 == 0 ) {
+			std::cerr << "Writing " << (index+1) << "..." << std::endl;
 		}
 
-		if (test) { if ( position > 9999999 ) { break; } }
+		if (test) { if ( index > 9999999 ) { break; } }
 	}
 
 	close(bam_in);
 	close(bam_out);
 }
-
 
 // ----------------------------------------------------------------------------
 // Function main()
@@ -210,7 +214,7 @@ int main(int argc, char const** argv)
 		return res == seqan::ArgumentParser::PARSE_ERROR;
 	}
 
-	bool test = false;
+	bool test = true;
 
 	// The Molecule class allows to try to find a gene for a barcode-UMI pair
 	Molecules molecules = ExtractMoleculesFromBAM(options.bam_in, test);
@@ -229,19 +233,28 @@ int main(int argc, char const** argv)
 		files[st] = std::ofstream(filename);
 	}
 
+
 	// For each alignment record, assign a mapping tag:
 	// UNIQUE, INCLUDED, EXCLUDED, UNRESOLVED
-	std::map<unsigned long long, std::string> tags;
+	std::map< unsigned long long , std::tuple<std::string, std::string> > tags;
 	unsigned long long i = 0;
 	for (auto& molecule : molecules)
 	{
 		Molecule mol = Molecule(molecule);
+
+		mol.ExtractMappings();
 		mol.ComputeFrequencies();
 
-		for (auto& [pos, tag] : mol.GetFrequencyBasedRecordTags())
+		for (auto& [pos, tag_tuple] : mol.GetFrequencyBasedRecordTags())
 		{
-			tags[pos] = tag;
+			tags[pos] = tag_tuple;
+			std::cout
+				<< mol << ": "
+				<< std::get<0>(tag_tuple) << ", "
+				<< std::get<1>(tag_tuple)
+				<< std::endl;
 		}
+		std::cout << std::endl;
 
 		// Reads status
 		files[mol.GetStatus()]
@@ -261,7 +274,7 @@ int main(int argc, char const** argv)
 	}
 
 	// Write the records with the mapping tags in a new BAM file
-	WriteTaggedRecords(options.bam_in, options.bam_out, tags, "cs", test);
+	WriteTaggedRecords(options.bam_in, options.bam_out, tags, test);
 
 	return 0;
 }

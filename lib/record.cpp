@@ -23,10 +23,13 @@ Record::Record()
 // Minimal constructor
 // ----------------------------------------------------------------------------
 
-Record::Record(unsigned long long position, char* read, long score, char* gene)
+Record::Record(unsigned long long index, char* read, int32_t reference,
+	int32_t position, long score, char* gene)
 {
-	this->position = position;
+	this->index = index;
 	this->read = std::string(read);
+	this->reference = reference;
+	this->position = position;
 	this->score = score;
 	this->gene = std::string(gene);
 }
@@ -36,12 +39,12 @@ Record::Record(unsigned long long position, char* read, long score, char* gene)
 // ============================================================================
 
 // ----------------------------------------------------------------------------
-// GetPos()
+// GetIndex()
 // ----------------------------------------------------------------------------
 
-unsigned long long Record::GetPos() const
+unsigned long long Record::GetIndex() const
 {
-	return position;
+	return index;
 }
 
 // ----------------------------------------------------------------------------
@@ -51,6 +54,24 @@ unsigned long long Record::GetPos() const
 std::string Record::GetRead() const
 {
 	return read;
+}
+
+// ----------------------------------------------------------------------------
+// GetReference()
+// ----------------------------------------------------------------------------
+
+int32_t Record::GetReference() const
+{
+	return reference;
+}
+
+// ----------------------------------------------------------------------------
+// GetPos()
+// ----------------------------------------------------------------------------
+
+int32_t Record::GetPos() const
+{
+	return position;
 }
 
 // ----------------------------------------------------------------------------
@@ -95,7 +116,15 @@ std::string Record::GetCSVString(char delimiter) const
 
 std::ostream& operator<<(std::ostream& out, const Record& record)
 {
-	out << "(" << record.GetPos() << ", " << record.GetScore() << ", " << record.GetGene() << ")";
+	out
+		<< "("
+		<< record.GetIndex() << ", "
+		<< record.GetRead() << ", "
+		<< record.GetReference() << ", "
+		<< record.GetPos() << ", "
+		<< record.GetScore() << ", "
+		<< record.GetGene()
+		<< ")";
 	return out;
 }
 
@@ -105,6 +134,6 @@ std::ostream& operator<<(std::ostream& out, const Record& record)
 
 bool operator<(const Record& record1, const Record& record2)
 {
-	return record1.GetPos() < record2.GetPos();
+	return record1.GetIndex() < record2.GetIndex();
 }
 
